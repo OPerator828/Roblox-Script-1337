@@ -1,39 +1,306 @@
 --[[
     ================================================
-    Продвинутый GUI с Табами и Функциями
-    (Версия v6 - Безопасный запуск / Safe Load)
+    Продвинутый GUI Шаблон (v7 - Template)
     ================================================
-    - [[НОВОЕ]] Добавлено ожидание загрузки игры (game.Loaded:Wait())
-    - [[НОВОЕ]] Добавлено безопасное ожидание LocalPlayer и PlayerGui
-    - Все функции из v5 на месте
+    - Безопасная загрузка (ждет, пока игра прогрузится)
+    - Анимированное меню
+    - Кнопка "X" (Закрыть и Выгрузить)
+    - Система Вкладок (Visuals, Main)
+    - Примеры контента на вкладках
 ]]
 
--- --- [[НОВОЕ]] БЕЗОПАСНАЯ ЗАГРУЗКА ---
--- Ждем, пока игра полностью загрузится, чтобы избежать ошибок
+-- --- БЕЗОПАСНАЯ ЗАГРУЗКА ---
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
-task.wait(1) -- Дополнительная небольшая задержка на всякий случай
+wait(1) -- Используем старый wait() для совместимости
 
 -- --- СЕРВИСЫ И ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
-local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-
--- [[ИЗМЕНЕНО]] Более безопасное ожидание LocalPlayer
 local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
-
--- [[ИЗМЕНЕНО]] Ждем, пока PlayerGui будет готов
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- [[ИЗМЕНЕНО]] Получаем камеру после того, как все загружено
-local Camera = Workspace.CurrentCamera 
--- --- КОНЕЦ БЕЗОПАСНОЙ ЗАГРУЗКИ ---
-
-
 local isOpen = false
+
+-- --- СОЗДАНИЕ GUI ---
+
+-- 1. Главный ScreenGui
+local MyScreenGui = Instance.new("ScreenGui")
+MyScreenGui.Name = "MyMenu_v7_Template"
+MyScreenGui.Parent = PlayerGui
+MyScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+MyScreenGui.ResetOnSpawn = false -- GUI не будет пропадать при респавне
+
+-- 2. Кнопка Открытия (Круглая кнопка "M")
+local OpenButton = Instance.new("TextButton")
+OpenButton.Name = "OpenButton"
+OpenButton.Parent = MyScreenGui
+OpenButton.Size = UDim2.new(0, 60, 0, 60)
+OpenButton.Position = UDim2.new(0.02, 0, 0.5, -30)
+OpenButton.AnchorPoint = Vector2.new(0, 0.5)
+OpenButton.Text = "M"
+OpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+OpenButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+OpenButton.Font = Enum.Font.GothamSemibold
+OpenButton.TextSize = 24
+OpenButton.ZIndex = 3
+
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(1, 0)
+btnCorner.Parent = OpenButton
+
+local btnStroke = Instance.new("UIStroke")
+btnStroke.Color = Color3.fromRGB(80, 80, 80)
+btnStroke.Thickness = 2
+btnStroke.Parent = OpenButton
+
+-- 3. Главное Меню (Frame)
+local MenuFrame = Instance.new("Frame")
+MenuFrame.Name = "MenuFrame"
+MenuFrame.Parent = MyScreenGui
+MenuFrame.Size = UDim2.new(0, 400, 0, 350)
+MenuFrame.Position = UDim2.new(-0.5, 0, 0.5, 0) -- Стартовая позиция (за экраном)
+MenuFrame.AnchorPoint = Vector2.new(0, 0.5)
+MenuFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+MenuFrame.BorderSizePixel = 0
+MenuFrame.ClipsDescendants = true
+MenuFrame.ZIndex = 2
+
+local frameCorner = Instance.new("UICorner")
+frameCorner.CornerRadius = UDim.new(0, 12)
+frameCorner.Parent = MenuFrame
+
+local frameStroke = Instance.new("UIStroke")
+frameStroke.Color = Color3.fromRGB(80, 80, 80)
+frameStroke.Thickness = 2
+frameStroke.Parent = MenuFrame
+
+local frameGradient = Instance.new("UIGradient")
+frameGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 50, 50)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 30, 30))
+})
+frameGradient.Rotation = 90
+frameGradient.Parent = MenuFrame
+
+-- 4. Заголовок Меню
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Name = "Title"
+TitleLabel.Parent = MenuFrame
+TitleLabel.Size = UDim2.new(1, 0, 0, 40)
+TitleLabel.Position = UDim2.new(0, 0, 0, 0)
+TitleLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+TitleLabel.Text = "My Cool Menu"
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextSize = 18
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 12)
+titleCorner.Parent = TitleLabel
+
+-- 5. Кнопка Закрытия (Крестик)
+local CloseButton = Instance.new("TextButton")
+CloseButton.Name = "CloseButton"
+CloseButton.Parent = MenuFrame
+CloseButton.Size = UDim2.new(0, 25, 0, 25)
+CloseButton.Position = UDim2.new(1, -10, 0, 7.5)
+CloseButton.AnchorPoint = Vector2.new(1, 0)
+CloseButton.Text = "X"
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextSize = 16
+CloseButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+CloseButton.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+CloseButton.BackgroundTransparency = 0.5
+CloseButton.ZIndex = 3
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 6)
+closeCorner.Parent = CloseButton
+
+-- Анимация наведения на крестик
+local closeHoverInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad)
+local closeHoverTween = TweenService:Create(CloseButton, closeHoverInfo, {
+    BackgroundColor3 = Color3.fromRGB(200, 50, 50),
+    BackgroundTransparency = 0,
+    TextColor3 = Color3.fromRGB(255, 255, 255)
+})
+local closeUnhoverTween = TweenService:Create(CloseButton, closeHoverInfo, {
+    BackgroundColor3 = Color3.fromRGB(25, 25, 25),
+    BackgroundTransparency = 0.5,
+    TextColor3 = Color3.fromRGB(200, 200, 200)
+})
+
+CloseButton.MouseEnter:Connect(function() closeHoverTween:Play() end)
+CloseButton.MouseLeave:Connect(function() closeUnhoverTween:Play() end)
+
+
+-- 6. СИСТЕМА ТАБОВ (ВКЛАДОК)
+
+local TabContainer = Instance.new("Frame")
+TabContainer.Name = "TabContainer"
+TabContainer.Parent = MenuFrame
+TabContainer.Size = UDim2.new(1, 0, 0, 35)
+TabContainer.Position = UDim2.new(0, 0, 0, 40)
+TabContainer.BackgroundTransparency = 1
+
+local ContentContainer = Instance.new("Frame")
+ContentContainer.Name = "ContentContainer"
+ContentContainer.Parent = MenuFrame
+ContentContainer.Size = UDim2.new(1, -20, 1, -85)
+ContentContainer.Position = UDim2.new(0, 10, 0, 75)
+ContentContainer.BackgroundTransparency = 1
+ContentContainer.ClipsDescendants = true -- Обрезаем контент
+
+-- Кнопки-табы
+local TabButtonVisuals = Instance.new("TextButton")
+TabButtonVisuals.Name = "TabVisuals"
+TabButtonVisuals.Parent = TabContainer
+TabButtonVisuals.Size = UDim2.new(0, 100, 1, 0)
+TabButtonVisuals.Position = UDim2.new(0, 10, 0, 0)
+TabButtonVisuals.Font = Enum.Font.GothamSemibold
+TabButtonVisuals.Text = "Visuals"
+TabButtonVisuals.TextSize = 16
+TabButtonVisuals.TextColor3 = Color3.fromRGB(255, 255, 255) -- Активный
+TabButtonVisuals.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+local tabVisualsCorner = Instance.new("UICorner", TabButtonVisuals)
+tabVisualsCorner.CornerRadius = UDim.new(0, 6)
+
+local TabButtonMain = Instance.new("TextButton")
+TabButtonMain.Name = "TabMain"
+TabButtonMain.Parent = TabContainer
+TabButtonMain.Size = UDim2.new(0, 100, 1, 0)
+TabButtonMain.Position = UDim2.new(0, 115, 0, 0)
+TabButtonMain.Font = Enum.Font.Gotham
+TabButtonMain.Text = "Main"
+TabButtonMain.TextSize = 16
+TabButtonMain.TextColor3 = Color3.fromRGB(150, 150, 150) -- Неактивный
+TabButtonMain.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+local tabMainCorner = Instance.new("UICorner", TabButtonMain)
+tabMainCorner.CornerRadius = UDim.new(0, 6)
+
+-- Страницы (содержимое)
+local VisualsFrame = Instance.new("Frame")
+VisualsFrame.Name = "VisualsFrame"
+VisualsFrame.Parent = ContentContainer
+VisualsFrame.Size = UDim2.new(1, 0, 1, 0)
+VisualsFrame.BackgroundTransparency = 1
+VisualsFrame.Visible = true -- Показываем по умолчанию
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ContentContainer
+MainFrame.Size = UDim2.new(1, 0, 1, 0)
+MainFrame.BackgroundTransparency = 1
+MainFrame.Visible = false -- Скрываем
+
+-- Логика переключения табов
+local tabs = {TabButtonVisuals, TabButtonMain}
+local pages = {VisualsFrame, MainFrame}
+
+local function switchTab(tabToSelect)
+    for i, tab in ipairs(tabs) do
+        local page = pages[i]
+        if tab == tabToSelect then
+            -- Активировать
+            page.Visible = true
+            tab.Font = Enum.Font.GothamSemibold
+            tab.TextColor3 = Color3.fromRGB(255, 255, 255)
+            tab.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        else
+            -- Деактивировать
+            page.Visible = false
+            tab.Font = Enum.Font.Gotham
+            tab.TextColor3 = Color3.fromRGB(150, 150, 150)
+            tab.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+        end
+    end
+end
+
+TabButtonVisuals.MouseButton1Click:Connect(function() switchTab(TabButtonVisuals) end)
+TabButtonMain.MouseButton1Click:Connect(function() switchTab(TabButtonMain) end)
+
+-- --- [[ПРИМЕР]] ДОБАВЛЕНИЕ КОНТЕНТА ---
+
+-- Добавляем пример текста во вкладку "Visuals"
+local ExampleLabel_Visuals = Instance.new("TextLabel")
+ExampleLabel_Visuals.Name = "ExampleLabel"
+ExampleLabel_Visuals.Parent = VisualsFrame
+ExampleLabel_Visuals.Size = UDim2.new(1, 0, 0, 30)
+ExampleLabel_Visuals.Position = UDim2.new(0, 0, 0, 10)
+ExampleLabel_Visuals.Font = Enum.Font.Gotham
+ExampleLabel_Visuals.Text = "Это вкладка 'Visuals'"
+ExampleLabel_Visuals.TextSize = 16
+ExampleLabel_Visuals.TextColor3 = Color3.fromRGB(200, 200, 200)
+ExampleLabel_Visuals.BackgroundTransparency = 1
+
+-- Добавляем пример кнопки во вкладку "Main"
+local ExampleButton_Main = Instance.new("TextButton")
+ExampleButton_Main.Name = "ExampleButton"
+ExampleButton_Main.Parent = MainFrame
+ExampleButton_Main.Size = UDim2.new(1, 0, 0, 30)
+ExampleButton_Main.Position = UDim2.new(0, 0, 0, 10)
+ExampleButton_Main.Font = Enum.Font.GothamSemibold
+ExampleButton_Main.Text = "Нажми меня!"
+ExampleButton_Main.TextSize = 16
+ExampleButton_Main.TextColor3 = Color3.fromRGB(255, 255, 255)
+ExampleButton_Main.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+local btnCornerMain = Instance.new("UICorner", ExampleButton_Main)
+btnCornerMain.CornerRadius = UDim.new(0, 8)
+
+-- Функция для примера
+local function onExampleButtonClick()
+    print("Кнопка во вкладке Main нажата!")
+    ExampleButton_Main.Text = "Нажато!"
+end
+ExampleButton_Main.MouseButton1Click:Connect(onExampleButtonClick)
+
+
+-- --- ГЛАВНАЯ ЛОГИКА АНИМАЦИЙ (Open/Close) ---
+
+local animationInfo = TweenInfo.new(0.4, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out)
+local closedPosition = UDim2.new(-0.5, 0, 0.5, 0)
+local openPosition = UDim2.new(0.02, 70, 0.5, 0)
+
+local openTween = TweenService:Create(MenuFrame, animationInfo, {Position = openPosition})
+local closeTween = TweenService:Create(MenuFrame, animationInfo, {Position = closedPosition})
+
+-- Анимация наведения на кнопку "M"
+local hoverInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad)
+local originalBtnColor = OpenButton.BackgroundColor3
+local hoverBtnColor = Color3.fromRGB(60, 60, 60)
+local hoverTween = TweenService:Create(OpenButton, hoverInfo, {BackgroundColor3 = hoverBtnColor})
+local unhoverTween = TweenService:Create(OpenButton, hoverInfo, {BackgroundColor3 = originalBtnColor})
+
+OpenButton.MouseEnter:Connect(function() hoverTween:Play() end)
+OpenButton.MouseLeave:Connect(function() unhoverTween:Play() end)
+
+-- Открытие/Закрытие по кнопке "M"
+OpenButton.MouseButton1Click:Connect(function()
+    if isOpen then
+        closeTween:Play()
+        isOpen = false
+    else
+        openTween:Play()
+        isOpen = true
+    end
+end)
+
+-- ЛОГИКА ЗАКРЫТИЯ (КРЕСТИК)
+CloseButton.MouseButton1Click:Connect(function()
+    -- Здесь больше не нужно отключать функции,
+    -- поэтому мы просто уничтожаем GUI
+    MyScreenGui:Destroy()
+end)
+
+-- Безопасная очистка (на случай, если скрипт выгрузят)
+MyScreenGui.Destroying:Connect(function()
+    print("Меню выгружено.")
+    -- Если у вас будут функции, которые нужно остановить,
+    -- делайте это здесь
+end)
 
 -- ESP на таймеры
 local isTimerEspActive = false 
